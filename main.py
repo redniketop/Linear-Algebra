@@ -1,9 +1,14 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, field_validator
 from sympy import Matrix
+import logging
 
 # Create an instance of FastAPI
 app = FastAPI()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Define the data model for the matrix input using Pydantic
 class MatrixData(BaseModel):
@@ -31,10 +36,10 @@ async def calculate_row_reduction(matrix: MatrixData):
         # Convert the pivot columns to a list of integers
         pivot_cols_list = [int(col) for col in pivot_cols]
 
-        # Debug output to trace issues
-        print(f"Received matrix: {matrix.data}")
-        print(f"RREF Matrix: {rref_list}")
-        print(f"Pivot Columns: {pivot_cols_list}")
+        # Log received matrix and calculated RREF matrix
+        logger.info(f"Received matrix: {matrix.data}")
+        logger.info(f"RREF Matrix: {rref_list}")
+        logger.info(f"Pivot Columns: {pivot_cols_list}")
 
         # Prepare the response data
         response_data = {
@@ -42,14 +47,14 @@ async def calculate_row_reduction(matrix: MatrixData):
             "pivot_columns": pivot_cols_list
         }
 
-        # Debug output to trace issues
-        print(f"Response data: {response_data}")
+        # Log response data
+        logger.info(f"Response data: {response_data}")
 
         # Return the response data
         return response_data
     except Exception as e:
         # Log the error and raise an HTTPException with a 400 status code
-        print(f"Error in /row-reduction/: {e}")
+        logger.error(f"Error in /row-reduction/: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 # Define a POST endpoint for calculating the determinant
@@ -61,15 +66,15 @@ async def calculate_determinant(matrix: MatrixData):
         # Calculate the determinant of the matrix
         determinant = sympy_matrix.det()
 
-        # Debug output to trace issues
-        print(f"Received matrix: {matrix.data}")
-        print(f"Determinant: {determinant}")
+        # Log received matrix and calculated determinant
+        logger.info(f"Received matrix: {matrix.data}")
+        logger.info(f"Determinant: {determinant}")
 
         # Return the determinant as a float
         return {"determinant": float(determinant)}
     except Exception as e:
         # Log the error and raise an HTTPException with a 400 status code
-        print(f"Error in /determinant/: {e}")
+        logger.error(f"Error in /determinant/: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 # Run the FastAPI application using Uvicorn if this script is run directly
